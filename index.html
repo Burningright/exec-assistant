@@ -5,548 +5,403 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Exec Assistant">
+<meta name="apple-mobile-web-app-title" content="Exec">
 <meta name="theme-color" content="#0a0a0a">
 <title>Exec Assistant</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1e1e1e;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0ede8;
-    --text2: #888880;
-    --text3: #555550;
-    --accent: #c8f064;
-    --accent-dim: rgba(200,240,100,0.12);
-    --red: #ff6b6b;
-    --red-dim: rgba(255,107,107,0.12);
-    --amber: #ffb347;
-    --amber-dim: rgba(255,179,71,0.12);
-    --blue: #64b5f6;
-    --blue-dim: rgba(100,181,246,0.12);
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+:root {
+  --bg: #0a0a0a;
+  --s1: #141414;
+  --s2: #1c1c1c;
+  --s3: #242424;
+  --b1: rgba(255,255,255,0.07);
+  --b2: rgba(255,255,255,0.13);
+  --b3: rgba(255,255,255,0.22);
+  --t1: #f0ede8;
+  --t2: #8a8880;
+  --t3: #4e4e4a;
+  --accent: #c8f064;
+  --adim: rgba(200,240,100,0.13);
+  --red: #ff6b6b;
+  --rdim: rgba(255,107,107,0.13);
+  --amb: #ffb347;
+  --adm2: rgba(255,179,71,0.13);
+  --blu: #64b5f6;
+  --bdim: rgba(100,181,246,0.13);
+  --st: env(safe-area-inset-top,0px);
+  --sb: env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 
-  .app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
-  }
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:var(--st);padding-bottom:var(--sb);position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;padding-top:var(--st);padding-bottom:var(--sb);background:var(--bg);transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
+.screen.behind{transform:translateX(-28%);pointer-events:none}
+.screen.offright{transform:translateX(100%)}
+.screen.active{transform:translateX(0)}
 
-  /* TOP BAR */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px 12px;
-    flex-shrink: 0;
-  }
-  .topbar-left h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px;
-    font-weight: 400;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-  .topbar-left p { font-size: 12px; color: var(--text2); margin-top: 1px; }
-  .streak-badge {
-    display: flex; align-items: center; gap: 5px;
-    background: var(--accent-dim); border: 1px solid rgba(200,240,100,0.2);
-    border-radius: 999px; padding: 5px 12px;
-    font-size: 12px; color: var(--accent); font-weight: 500;
-  }
-  .flame { font-size: 14px; }
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px;flex-shrink:0}
+.topbar h1{font-family:'DM Serif Display',serif;font-size:23px;font-weight:400;letter-spacing:-.3px}
+.topbar p{font-size:12px;color:var(--t2);margin-top:2px}
+.streak{display:flex;align-items:center;gap:5px;background:var(--adim);border:1px solid rgba(200,240,100,.2);border-radius:999px;padding:5px 13px;font-size:12px;color:var(--accent);font-weight:500}
 
-  /* SCROLL AREA */
-  .scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0 16px 20px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .scroll-area::-webkit-scrollbar { display: none; }
+/* ── SCROLL ── */
+.scroll{flex:1;overflow-y:auto;padding:0 16px 24px;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
 
-  /* MOOD CHECK-IN */
-  .checkin {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-  .checkin-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
-  .checkin-q { font-size: 15px; color: var(--text); line-height: 1.4; margin-bottom: 12px; min-height: 42px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    padding: 6px 14px; border-radius: 999px; font-size: 13px;
-    border: 1px solid var(--border2); background: transparent;
-    color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.18s;
-  }
-  .chip.active { background: var(--accent-dim); border-color: rgba(200,240,100,0.35); color: var(--accent); }
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:15px;margin-bottom:12px}
+.card-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
 
-  /* SECTION */
-  .section { margin-bottom: 14px; }
-  .section-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 8px; padding: 0 2px;
-  }
-  .section-head span { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
-  .section-head small { font-size: 12px; color: var(--text2); }
+/* ── CHECKIN ── */
+.checkin-q{font-size:15px;color:var(--t1);line-height:1.45;margin-bottom:12px;min-height:44px;transition:all .2s}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 14px;border-radius:999px;font-size:13px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;-webkit-appearance:none}
+.chip.on{background:var(--adim);border-color:rgba(200,240,100,.35);color:var(--accent)}
 
-  /* TASKS */
-  .task-list { display: flex; flex-direction: column; gap: 6px; }
-  .task {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px;
-    cursor: pointer; transition: opacity 0.2s, background 0.15s;
-    user-select: none;
-  }
-  .task.done { opacity: 0.38; }
-  .task-check {
-    width: 18px; height: 18px; border-radius: 6px;
-    border: 1.5px solid var(--border2); flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; transition: all 0.15s;
-  }
-  .task.done .task-check { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
-  .task-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.3; }
-  .task.done .task-text { text-decoration: line-through; color: var(--text3); }
-  .badge {
-    font-size: 10px; font-weight: 500; padding: 2px 8px;
-    border-radius: 999px; flex-shrink: 0;
-  }
-  .badge-high { background: var(--red-dim); color: var(--red); }
-  .badge-med  { background: var(--amber-dim); color: var(--amber); }
-  .badge-low  { background: var(--surface2); color: var(--text2); }
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:13px 11px}
+.stat-n{font-family:'DM Serif Display',serif;font-size:26px;color:var(--t1);line-height:1}
+.stat-l{font-size:11px;color:var(--t3);margin-top:3px}
 
-  /* ADD TASK */
-  .add-row { display: flex; gap: 6px; margin-top: 8px; }
-  .add-row input, .add-row select {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
-    font-size: 13px; padding: 9px 12px;
-  }
-  .add-row input { flex: 1; }
-  .add-row input::placeholder { color: var(--text3); }
-  .add-row select { color: var(--text2); }
-  .add-row select option { background: #1e1e1e; }
-  .add-btn {
-    background: var(--accent); color: #0a0a0a; border: none;
-    border-radius: 10px; font-size: 18px; width: 38px; flex-shrink: 0;
-    cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Sans', sans-serif;
-  }
+/* ── SECTION HEAD ── */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px}
+.sh span{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.sh small{font-size:12px;color:var(--t2)}
 
-  /* PROGRESS */
-  .prog-wrap { margin-top: 10px; }
-  .prog-track { background: var(--surface2); border-radius: 999px; height: 4px; }
-  .prog-fill { background: var(--accent); height: 4px; border-radius: 999px; transition: width 0.4s ease; }
-  .prog-label { font-size: 11px; color: var(--text2); margin-top: 5px; }
+/* ── TASKS ── */
+.task-wrap{position:relative;margin-bottom:6px;border-radius:13px;overflow:hidden}
+.task-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;background:var(--rdim);border-radius:13px}
+.task-bg-del{font-size:12px;color:var(--red);font-weight:500}
+.task{display:flex;align-items:center;gap:12px;background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:12px 14px;position:relative;transition:transform .25s ease,opacity .2s;will-change:transform;touch-action:pan-y}
+.task.done{opacity:.36}
+.chk{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--b2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;cursor:pointer}
+.task.done .chk{background:var(--accent);border-color:var(--accent);color:#0a0a0a}
+.task-body{flex:1;min-width:0;cursor:pointer}
+.task-text{font-size:14px;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task.done .task-text{text-decoration:line-through;color:var(--t3)}
+.badge{font-size:10px;font-weight:500;padding:2px 9px;border-radius:999px;flex-shrink:0}
+.bh{background:var(--rdim);color:var(--red)}
+.bm{background:var(--adm2);color:var(--amb)}
+.bl{background:var(--s2);color:var(--t2)}
 
-  /* STATS ROW */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-  .stat {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px 12px;
-  }
-  .stat-n { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); line-height: 1; }
-  .stat-l { font-size: 11px; color: var(--text3); margin-top: 4px; }
+/* ── ADD TASK ── */
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-inp{flex:1;background:var(--s1);border:1px solid var(--b1);border-radius:11px;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 13px;outline:none;-webkit-appearance:none}
+.add-inp::placeholder{color:var(--t3)}
+.add-inp:focus{border-color:var(--b3)}
+.add-sel{background:var(--s1);border:1px solid var(--b1);border-radius:11px;color:var(--t2);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 10px;-webkit-appearance:none;appearance:none;outline:none}
+.add-sel option{background:#1c1c1c}
+.add-btn{background:var(--accent);color:#0a0a0a;border:none;border-radius:11px;width:42px;flex-shrink:0;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:400;line-height:1}
 
-  /* GOALS */
-  .goals { display: flex; flex-direction: column; gap: 8px; }
-  .goal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px;
-  }
-  .goal-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-  .goal-name { font-size: 13px; color: var(--text); }
-  .goal-pct { font-size: 12px; color: var(--text2); }
-  .goal-track { background: var(--surface2); border-radius: 999px; height: 3px; }
-  .goal-bar { height: 3px; border-radius: 999px; transition: width 0.5s ease; }
+/* ── PROGRESS ── */
+.prog{margin-top:10px}
+.prog-track{background:var(--s2);border-radius:999px;height:4px}
+.prog-fill{background:var(--accent);height:4px;border-radius:999px;transition:width .4s ease}
+.prog-lbl{font-size:11px;color:var(--t2);margin-top:5px}
 
-  /* MOTIVATION */
-  .motivate {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 16px; margin-bottom: 14px;
-  }
-  .motivate-q {
-    font-family: 'DM Serif Display', serif; font-style: italic;
-    font-size: 16px; color: var(--text); line-height: 1.5; margin-bottom: 10px;
-  }
-  .motivate-btn {
-    font-size: 12px; color: var(--text3); background: none; border: none;
-    cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 0;
-  }
-  .motivate-btn:hover { color: var(--text2); }
+/* ── GOALS ── */
+.goal{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.goal-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.goal-name{font-size:13px;color:var(--t1)}
+.goal-pct{font-size:12px;color:var(--t2)}
+.goal-track{background:var(--s2);border-radius:999px;height:3px}
+.goal-bar{height:3px;border-radius:999px;transition:width .5s ease}
 
-  /* BOTTOM NAV */
-  .bottom-nav {
-    display: flex; border-top: 1px solid var(--border);
-    background: var(--bg); flex-shrink: 0; padding-bottom: 4px;
-  }
-  .nav-btn {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    gap: 3px; padding: 10px 0; background: none; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .nav-icon { font-size: 18px; }
-  .nav-label { font-size: 10px; color: var(--text3); }
-  .nav-btn.active .nav-label { color: var(--accent); }
-  .nav-btn.active .nav-icon { filter: none; }
+/* ── MOTIVATION ── */
+.motivate-q{font-family:'DM Serif Display',serif;font-style:italic;font-size:16px;color:var(--t1);line-height:1.55;margin-bottom:10px}
+.motivate-btn{font-size:12px;color:var(--t3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0}
 
-  /* AI CHAT PANEL */
-  .panel {
-    position: absolute; inset: 0;
-    background: var(--bg);
-    display: flex; flex-direction: column;
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    z-index: 10;
-  }
-  .panel.open { transform: translateX(0); }
-  .panel-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .back-btn {
-    background: none; border: none; color: var(--text2); font-size: 20px;
-    cursor: pointer; padding: 0; line-height: 1;
-  }
-  .panel-title { font-family: 'DM Serif Display', serif; font-size: 18px; }
-  .chat-messages {
-    flex: 1; overflow-y: auto; padding: 16px;
-    display: flex; flex-direction: column; gap: 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .chat-messages::-webkit-scrollbar { display: none; }
-  .msg {
-    max-width: 85%; padding: 10px 14px;
-    border-radius: 14px; font-size: 14px; line-height: 1.5;
-  }
-  .msg.user {
-    background: var(--accent); color: #0a0a0a;
-    align-self: flex-end; border-bottom-right-radius: 4px;
-  }
-  .msg.ai {
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px;
-  }
-  .msg.thinking { color: var(--text3); font-style: italic; }
-  .chat-input-row {
-    display: flex; gap: 8px; padding: 12px 16px;
-    border-top: 1px solid var(--border); flex-shrink: 0;
-  }
-  .chat-input {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 10px 14px; font-size: 14px;
-    color: var(--text); font-family: 'DM Sans', sans-serif;
-    resize: none; max-height: 100px; line-height: 1.4;
-  }
-  .chat-input::placeholder { color: var(--text3); }
-  .send-btn {
-    background: var(--accent); color: #0a0a0a; border: none;
-    border-radius: 12px; width: 42px; flex-shrink: 0;
-    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .send-btn:disabled { opacity: 0.4; }
+/* ── BOTTOM NAV ── */
+.nav{display:flex;border-top:1px solid var(--b1);background:var(--bg);flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.nb-icon{font-size:19px;line-height:1}
+.nb-label{font-size:10px;color:var(--t3);transition:color .15s}
+.nb.on .nb-label{color:var(--accent)}
 
-  /* INSTALL BANNER */
-  .install-banner {
-    margin: 0 0 14px;
-    background: var(--accent-dim); border: 1px solid rgba(200,240,100,0.25);
-    border-radius: 14px; padding: 12px 14px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 10px;
-  }
-  .install-text { font-size: 12px; color: var(--accent); line-height: 1.4; flex: 1; }
-  .install-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
-  .install-close { background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer; padding: 0; }
+/* ── SHEET (bottom-up modal) ── */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+.sheet-bg.vis{opacity:1;pointer-events:all}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--s1);border-radius:20px 20px 0 0;padding:0 0 var(--sb);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:51;max-height:88vh;display:flex;flex-direction:column}
+.sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--b3);border-radius:999px;margin:12px auto 4px}
+.sheet-title{font-size:16px;font-weight:500;padding:8px 20px 14px;color:var(--t1);border-bottom:1px solid var(--b1)}
+.sheet-body{padding:18px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-body::-webkit-scrollbar{display:none}
+.field-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:16px}
+.field-label:first-child{margin-top:0}
+.field-inp{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:11px;color:var(--t1);font-family:'DM Sans',sans-serif;font-size:15px;padding:11px 13px;outline:none;-webkit-appearance:none}
+.field-inp:focus{border-color:var(--b3)}
+.field-inp::placeholder{color:var(--t3)}
+.pri-row{display:flex;gap:8px;margin-top:2px}
+.pri-btn{flex:1;padding:9px 0;border-radius:10px;border:1px solid var(--b2);background:transparent;color:var(--t2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s}
+.pri-btn.on-h{background:var(--rdim);border-color:rgba(255,107,107,.35);color:var(--red)}
+.pri-btn.on-m{background:var(--adm2);border-color:rgba(255,179,71,.35);color:var(--amb)}
+.pri-btn.on-l{background:var(--s2);border-color:var(--b2);color:var(--t2)}
+.sheet-actions{display:flex;gap:8px;padding:14px 20px 6px;border-top:1px solid var(--b1);flex-shrink:0}
+.btn-save{flex:1;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer}
+.btn-del{background:var(--rdim);color:var(--red);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:13px 18px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer}
+.btn-cancel{background:var(--s2);color:var(--t2);border:none;border-radius:12px;padding:13px 18px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer}
 
-  /* NOTES PANEL */
-  .notes-panel {
-    position: absolute; inset: 0;
-    background: var(--bg);
-    display: flex; flex-direction: column;
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    z-index: 10;
-  }
-  .notes-panel.open { transform: translateX(0); }
-  .notes-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .notes-header-left { display: flex; align-items: center; gap: 12px; }
-  .notes-title { font-family: 'DM Serif Display', serif; font-size: 18px; }
-  .notes-count { font-size: 12px; color: var(--text3); }
-  .new-note-btn {
-    background: var(--accent); color: #0a0a0a; border: none;
-    border-radius: 10px; width: 32px; height: 32px; font-size: 20px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Sans', sans-serif; font-weight: 400; flex-shrink: 0;
-  }
-  .notes-list {
-    flex: 1; overflow-y: auto; padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .notes-list::-webkit-scrollbar { display: none; }
-  .note-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px;
-    cursor: pointer; transition: border-color 0.15s;
-    position: relative;
-  }
-  .note-card:hover { border-color: var(--border2); }
-  .note-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-  .note-card-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; }
-  .note-card-tag {
-    font-size: 10px; padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
-    font-weight: 500;
-  }
-  .tag-idea { background: var(--blue-dim); color: var(--blue); }
-  .tag-plan { background: var(--accent-dim); color: var(--accent); }
-  .tag-ref  { background: var(--amber-dim); color: var(--amber); }
-  .tag-misc { background: var(--surface2); color: var(--text2); }
-  .note-card-body { font-size: 13px; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .note-card-date { font-size: 11px; color: var(--text3); margin-top: 8px; }
-  .note-empty { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 14px; line-height: 1.6; }
+/* ── GOAL EDITOR ── */
+.range-wrap{display:flex;align-items:center;gap:10px;margin-top:4px}
+.range-wrap input[type=range]{flex:1;accent-color:var(--accent)}
+.range-val{font-size:14px;color:var(--accent);min-width:34px;text-align:right}
 
-  /* NOTE EDITOR */
-  .note-editor {
-    position: absolute; inset: 0;
-    background: var(--bg);
-    display: flex; flex-direction: column;
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    z-index: 20;
-  }
-  .note-editor.open { transform: translateX(0); }
-  .editor-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .editor-actions { display: flex; gap: 8px; align-items: center; }
-  .editor-save {
-    background: var(--accent); color: #0a0a0a; border: none;
-    border-radius: 8px; padding: 6px 16px; font-size: 13px; font-weight: 500;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-  }
-  .editor-delete {
-    background: none; border: none; color: var(--text3); font-size: 13px;
-    cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 6px 8px;
-  }
-  .editor-delete:hover { color: var(--red); }
-  .editor-body { flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 10px; overflow: hidden; }
-  .editor-title {
-    background: transparent; border: none; outline: none;
-    font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text);
-    width: 100%; line-height: 1.3;
-  }
-  .editor-title::placeholder { color: var(--text3); }
-  .editor-tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .editor-tag {
-    padding: 5px 12px; border-radius: 999px; font-size: 12px;
-    border: 1px solid var(--border2); background: transparent;
-    color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
-  }
-  .editor-tag.active { background: var(--blue-dim); border-color: rgba(100,181,246,0.35); color: var(--blue); }
-  .editor-tag[data-tag="plan"].active { background: var(--accent-dim); border-color: rgba(200,240,100,0.35); color: var(--accent); }
-  .editor-tag[data-tag="ref"].active { background: var(--amber-dim); border-color: rgba(255,179,71,0.35); color: var(--amber); }
-  .editor-tag[data-tag="misc"].active { background: var(--surface2); border-color: var(--border2); color: var(--text2); }
-  .editor-divider { height: 1px; background: var(--border); flex-shrink: 0; }
-  .editor-content {
-    flex: 1; background: transparent; border: none; outline: none; resize: none;
-    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
-    line-height: 1.7; -webkit-overflow-scrolling: touch;
-  }
-  .editor-content::placeholder { color: var(--text3); }
+/* ── NOTES SCREEN ── */
+.notes-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px;flex-shrink:0}
+.notes-head-left{display:flex;align-items:center;gap:10px}
+.back{background:none;border:none;color:var(--t2);font-size:22px;cursor:pointer;padding:0;line-height:1;font-family:'DM Sans',sans-serif}
+.notes-title{font-family:'DM Serif Display',serif;font-size:20px}
+.notes-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.plus-btn{background:var(--accent);color:#0a0a0a;border:none;border-radius:10px;width:34px;height:34px;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.note-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;active:border-color:var(--b3)}
+.note-card:active{border-color:var(--b3)}
+.nc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.nc-title{font-size:14px;font-weight:500;color:var(--t1);line-height:1.3}
+.nc-tag{font-size:10px;padding:2px 9px;border-radius:999px;font-weight:500;flex-shrink:0}
+.ti{background:var(--bdim);color:var(--blu)}
+.tp{background:var(--adim);color:var(--accent)}
+.tr{background:var(--adm2);color:var(--amb)}
+.tm{background:var(--s2);color:var(--t2)}
+.nc-body{font-size:13px;color:var(--t2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nc-date{font-size:11px;color:var(--t3);margin-top:8px}
+.empty{text-align:center;padding:52px 24px;color:var(--t3);font-size:14px;line-height:1.7}
 
-  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  .fade-up { animation: fadeUp 0.35s ease both; }
+/* ── NOTE EDITOR SCREEN ── */
+.ne-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.ne-actions{display:flex;gap:8px;align-items:center}
+.ne-save{background:var(--accent);color:#0a0a0a;border:none;border-radius:9px;padding:7px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.ne-del{background:none;border:none;color:var(--t3);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;padding:7px 6px}
+.ne-del:hover{color:var(--red)}
+.ne-body{flex:1;display:flex;flex-direction:column;padding:16px;gap:10px;overflow:hidden}
+.ne-title-inp{background:transparent;border:none;outline:none;font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);width:100%;line-height:1.3}
+.ne-title-inp::placeholder{color:var(--t3)}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap}
+.etag{padding:5px 13px;border-radius:999px;font-size:12px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.etag.on-idea{background:var(--bdim);border-color:rgba(100,181,246,.35);color:var(--blu)}
+.etag.on-plan{background:var(--adim);border-color:rgba(200,240,100,.35);color:var(--accent)}
+.etag.on-ref{background:var(--adm2);border-color:rgba(255,179,71,.35);color:var(--amb)}
+.etag.on-misc{background:var(--s2);border-color:var(--b2);color:var(--t2)}
+.ne-divider{height:1px;background:var(--b1);flex-shrink:0}
+.ne-content{flex:1;background:transparent;border:none;outline:none;resize:none;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--t1);line-height:1.75;-webkit-overflow-scrolling:touch}
+.ne-content::placeholder{color:var(--t3)}
+
+/* ── CHAT SCREEN ── */
+.chat-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.chat-title{font-family:'DM Serif Display',serif;font-size:20px}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.chat-msgs::-webkit-scrollbar{display:none}
+.msg{max-width:86%;padding:10px 14px;border-radius:15px;font-size:14px;line-height:1.5}
+.msg.u{background:var(--accent);color:#0a0a0a;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.a{background:var(--s1);border:1px solid var(--b1);color:var(--t1);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.th{color:var(--t3);font-style:italic}
+.chat-inp-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--b1);flex-shrink:0}
+.chat-inp{flex:1;background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:10px 14px;font-size:14px;color:var(--t1);font-family:'DM Sans',sans-serif;resize:none;max-height:100px;line-height:1.4;outline:none}
+.chat-inp::placeholder{color:var(--t3)}
+.chat-send{background:var(--accent);color:#0a0a0a;border:none;border-radius:13px;width:44px;flex-shrink:0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.chat-send:disabled{opacity:.4}
 </style>
 </head>
 <body>
+<div class="app">
 
-<div class="app" id="app">
-  <div class="topbar">
-    <div class="topbar-left">
-      <h1>Good morning.</h1>
-      <p id="date-line">Monday, March 23</p>
-    </div>
-    <div class="streak-badge">
-      <span class="flame">🔥</span>
-      <span id="streak-count">3</span>
-    </div>
-  </div>
-
-  <div class="scroll-area">
-
-    <!-- Install banner -->
-    <div class="install-banner fade-up" id="install-banner">
-      <div class="install-text">
-        <strong>Add to home screen</strong>
-        Tap Share → "Add to Home Screen" to install as an app
-      </div>
-      <button class="install-close" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
-    </div>
-
-    <!-- Mood check-in -->
-    <div class="checkin fade-up">
-      <div class="checkin-label">Check-in</div>
-      <div class="checkin-q" id="checkin-q">How are you showing up today?</div>
-      <div class="chips">
-        <button class="chip" onclick="setMood(this,'Fired up')">Fired up</button>
-        <button class="chip" onclick="setMood(this,'Focused')">Focused</button>
-        <button class="chip" onclick="setMood(this,'A bit foggy')">A bit foggy</button>
-        <button class="chip" onclick="setMood(this,'Overwhelmed')">Overwhelmed</button>
-        <button class="chip" onclick="setMood(this,'Coasting')">Coasting</button>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats fade-up">
-      <div class="stat">
-        <div class="stat-n" id="stat-done">0</div>
-        <div class="stat-l">Done today</div>
-      </div>
-      <div class="stat">
-        <div class="stat-n" id="stat-streak">3</div>
-        <div class="stat-l">Day streak</div>
-      </div>
-      <div class="stat">
-        <div class="stat-n" id="stat-pct">0%</div>
-        <div class="stat-l">Complete</div>
-      </div>
-    </div>
-
-    <!-- Tasks -->
-    <div class="section fade-up">
-      <div class="section-head">
-        <span>Today's priorities</span>
-        <small id="task-count">0 / 0</small>
-      </div>
-      <div class="task-list" id="task-list"></div>
-      <div class="add-row">
-        <input type="text" id="task-input" placeholder="Add a task..." />
-        <select id="task-pri">
-          <option value="high">High</option>
-          <option value="med" selected>Med</option>
-          <option value="low">Low</option>
-        </select>
-        <button class="add-btn" onclick="addTask()">+</button>
-      </div>
-      <div class="prog-wrap">
-        <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-        <div class="prog-label" id="prog-label">0 of 0 tasks done</div>
-      </div>
-    </div>
-
-    <!-- Goals -->
-    <div class="section fade-up">
-      <div class="section-head"><span>Weekly goals</span></div>
-      <div class="goals" id="goals-list"></div>
-    </div>
-
-    <!-- Motivation -->
-    <div class="motivate fade-up">
-      <div class="motivate-q" id="motivate-q">"The secret of getting ahead is getting started."</div>
-      <button class="motivate-btn" onclick="nextQuote()">↻ New quote</button>
-    </div>
-
-  </div><!-- /scroll-area -->
-
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <button class="nav-btn active" id="nav-home" onclick="setTab('home')">
-      <span class="nav-icon">⊞</span>
-      <span class="nav-label">Today</span>
-    </button>
-    <button class="nav-btn" id="nav-chat" onclick="openChat()">
-      <span class="nav-icon">◎</span>
-      <span class="nav-label">Assistant</span>
-    </button>
-    <button class="nav-btn" id="nav-goals" onclick="setTab('goals')">
-      <span class="nav-icon">◈</span>
-      <span class="nav-label">Goals</span>
-    </button>
-    <button class="nav-btn" id="nav-notes" onclick="openNotes()">
-      <span class="nav-icon">✎</span>
-      <span class="nav-label">Notes</span>
-    </button>
-  </div>
-</div>
-
-<!-- Notes Panel -->
-<div class="notes-panel" id="notes-panel">
-  <div class="notes-header">
-    <div class="notes-header-left">
-      <button class="back-btn" onclick="closeNotes()">‹</button>
+  <!-- ═══ HOME SCREEN ═══ -->
+  <div class="screen active" id="s-home">
+    <div class="topbar">
       <div>
-        <div class="notes-title">Ideas & Notes</div>
-        <div class="notes-count" id="notes-count">0 notes</div>
+        <h1>Good morning.</h1>
+        <p id="date-line">Monday, March 23</p>
+      </div>
+      <div class="streak">🔥 <span id="streak-n">3</span></div>
+    </div>
+    <div class="scroll">
+
+      <!-- checkin -->
+      <div class="card">
+        <div class="card-label">Check-in</div>
+        <div class="checkin-q" id="cq">How are you showing up today?</div>
+        <div class="chips">
+          <button class="chip" onclick="mood(this,'Fired up')">Fired up</button>
+          <button class="chip" onclick="mood(this,'Focused')">Focused</button>
+          <button class="chip" onclick="mood(this,'A bit foggy')">A bit foggy</button>
+          <button class="chip" onclick="mood(this,'Overwhelmed')">Overwhelmed</button>
+          <button class="chip" onclick="mood(this,'Coasting')">Coasting</button>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="st-done">0</div><div class="stat-l">Done today</div></div>
+        <div class="stat"><div class="stat-n" id="st-str">3</div><div class="stat-l">Day streak</div></div>
+        <div class="stat"><div class="stat-n" id="st-pct">0%</div><div class="stat-l">Complete</div></div>
+      </div>
+
+      <!-- tasks -->
+      <div style="margin-bottom:12px">
+        <div class="sh"><span>Today's priorities</span><small id="tc">0/0</small></div>
+        <div id="task-list"></div>
+        <div class="add-row">
+          <input class="add-inp" id="ti" placeholder="Add a task…" />
+          <select class="add-sel" id="tp"><option value="high">High</option><option value="med" selected>Med</option><option value="low">Low</option></select>
+          <button class="add-btn" onclick="addTask()">+</button>
+        </div>
+        <div class="prog">
+          <div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+          <div class="prog-lbl" id="pl">0 of 0 tasks done</div>
+        </div>
+      </div>
+
+      <!-- goals -->
+      <div style="margin-bottom:12px">
+        <div class="sh"><span>Weekly goals</span><small style="cursor:pointer;color:var(--accent)" onclick="openGoalSheet(null)">+ add</small></div>
+        <div id="goals-list"></div>
+      </div>
+
+      <!-- motivation -->
+      <div class="card">
+        <div class="motivate-q" id="mq">"The secret of getting ahead is getting started."</div>
+        <button class="motivate-btn" onclick="nextQ()">↻ New quote</button>
+      </div>
+
+    </div><!-- /scroll -->
+    <div class="nav">
+      <button class="nb on" id="nb-home" onclick="goHome()"><span class="nb-icon">⊞</span><span class="nb-label">Today</span></button>
+      <button class="nb" id="nb-chat" onclick="goChat()"><span class="nb-icon">◎</span><span class="nb-label">Assistant</span></button>
+      <button class="nb" id="nb-notes" onclick="goNotes()"><span class="nb-icon">✎</span><span class="nb-label">Notes</span></button>
+    </div>
+  </div>
+
+  <!-- ═══ NOTES SCREEN ═══ -->
+  <div class="screen offright" id="s-notes">
+    <div class="notes-head">
+      <div class="notes-head-left">
+        <button class="back" onclick="goHome()">‹</button>
+        <div><div class="notes-title">Ideas & Notes</div><div class="notes-sub" id="notes-sub">0 notes</div></div>
+      </div>
+      <button class="plus-btn" onclick="openNoteEditor(null)">+</button>
+    </div>
+    <div class="scroll" id="notes-list-el"></div>
+    <div class="nav">
+      <button class="nb" id="nb-home2" onclick="goHome()"><span class="nb-icon">⊞</span><span class="nb-label">Today</span></button>
+      <button class="nb" id="nb-chat2" onclick="goChat()"><span class="nb-icon">◎</span><span class="nb-label">Assistant</span></button>
+      <button class="nb on" id="nb-notes2"><span class="nb-icon">✎</span><span class="nb-label">Notes</span></button>
+    </div>
+  </div>
+
+  <!-- ═══ NOTE EDITOR SCREEN ═══ -->
+  <div class="screen offright" id="s-editor">
+    <div class="ne-head">
+      <button class="back" onclick="closeNoteEditor()">‹</button>
+      <div class="ne-actions">
+        <button class="ne-del" id="ne-del" onclick="deleteNote()" style="display:none">Delete</button>
+        <button class="ne-save" onclick="saveNote()">Save</button>
       </div>
     </div>
-    <button class="new-note-btn" onclick="openEditor(null)">+</button>
+    <div class="ne-body">
+      <input class="ne-title-inp" id="ne-title" placeholder="Note title…" />
+      <div class="tag-row">
+        <button class="etag on-idea" data-tag="idea" onclick="setNoteTag(this)">Idea</button>
+        <button class="etag" data-tag="plan" onclick="setNoteTag(this)">Plan</button>
+        <button class="etag" data-tag="ref" onclick="setNoteTag(this)">Reference</button>
+        <button class="etag" data-tag="misc" onclick="setNoteTag(this)">Misc</button>
+      </div>
+      <div class="ne-divider"></div>
+      <textarea class="ne-content" id="ne-content" placeholder="Start writing…"></textarea>
+    </div>
   </div>
-  <div class="notes-list" id="notes-list"></div>
-</div>
 
-<!-- Note Editor -->
-<div class="note-editor" id="note-editor">
-  <div class="editor-header">
-    <button class="back-btn" onclick="closeEditor()">‹</button>
-    <div class="editor-actions">
-      <button class="editor-delete" id="editor-delete-btn" onclick="deleteNote()">Delete</button>
-      <button class="editor-save" onclick="saveNote()">Save</button>
+  <!-- ═══ CHAT SCREEN ═══ -->
+  <div class="screen offright" id="s-chat">
+    <div class="chat-head">
+      <button class="back" onclick="goHome()">‹</button>
+      <div class="chat-title">Your assistant</div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg a">Hey! I'm your executive assistant. Ask me to plan your day, prioritise tasks, keep you on track, or anything else.</div>
+    </div>
+    <div class="chat-inp-row">
+      <textarea class="chat-inp" id="chat-inp" placeholder="Ask your assistant…" rows="1"></textarea>
+      <button class="chat-send" id="chat-send" onclick="sendMsg()">↑</button>
     </div>
   </div>
-  <div class="editor-body">
-    <input type="text" class="editor-title" id="editor-title" placeholder="Note title..." />
-    <div class="editor-tag-row">
-      <button class="editor-tag active" data-tag="idea" onclick="setTag(this)">Idea</button>
-      <button class="editor-tag" data-tag="plan" onclick="setTag(this)">Plan</button>
-      <button class="editor-tag" data-tag="ref" onclick="setTag(this)">Reference</button>
-      <button class="editor-tag" data-tag="misc" onclick="setTag(this)">Misc</button>
+
+  <!-- ═══ TASK EDIT SHEET ═══ -->
+  <div class="sheet-bg" id="sheet-bg" onclick="closeSheet()"></div>
+  <div class="sheet" id="task-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Edit task</div>
+    <div class="sheet-body">
+      <div class="field-label">Task name</div>
+      <input class="field-inp" id="sh-text" placeholder="What needs to get done?" />
+      <div class="field-label">Priority</div>
+      <div class="pri-row">
+        <button class="pri-btn" data-p="high" onclick="setPri(this)">🔴 High</button>
+        <button class="pri-btn" data-p="med" onclick="setPri(this)">🟡 Med</button>
+        <button class="pri-btn" data-p="low" onclick="setPri(this)">⚪ Low</button>
+      </div>
     </div>
-    <div class="editor-divider"></div>
-    <textarea class="editor-content" id="editor-content" placeholder="Start writing your idea..."></textarea>
+    <div class="sheet-actions">
+      <button class="btn-del" id="sh-del" onclick="deleteTask()" style="display:none">Delete</button>
+      <button class="btn-save" onclick="saveTask()">Save</button>
+      <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
+    </div>
   </div>
-</div>
-<div class="panel" id="chat-panel">
-  <div class="panel-header">
-    <button class="back-btn" onclick="closeChat()">‹</button>
-    <div class="panel-title">Your assistant</div>
+
+  <!-- ═══ GOAL EDIT SHEET ═══ -->
+  <div class="sheet" id="goal-sheet" style="display:none">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="gs-title">Add goal</div>
+    <div class="sheet-body">
+      <div class="field-label">Goal name</div>
+      <input class="field-inp" id="gs-name" placeholder="What are you working towards?" />
+      <div class="field-label">Progress</div>
+      <div class="range-wrap">
+        <input type="range" min="0" max="100" value="0" id="gs-range" oninput="document.getElementById('gs-val').textContent=this.value+'%'" />
+        <span class="range-val" id="gs-val">0%</span>
+      </div>
+      <div class="field-label">Colour</div>
+      <div class="pri-row" style="gap:8px">
+        <button class="pri-btn" data-c="#64b5f6" onclick="setGoalColor(this)" style="background:rgba(100,181,246,.15);color:#64b5f6;border-color:rgba(100,181,246,.3)">Blue</button>
+        <button class="pri-btn" data-c="#c8f064" onclick="setGoalColor(this)" style="background:var(--adim);color:var(--accent);border-color:rgba(200,240,100,.3)">Green</button>
+        <button class="pri-btn" data-c="#ffb347" onclick="setGoalColor(this)" style="background:var(--adm2);color:var(--amb);border-color:rgba(255,179,71,.3)">Amber</button>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-del" id="gs-del" onclick="deleteGoal()" style="display:none">Delete</button>
+      <button class="btn-save" onclick="saveGoal()">Save</button>
+      <button class="btn-cancel" onclick="closeGoalSheet()">Cancel</button>
+    </div>
   </div>
-  <div class="chat-messages" id="chat-messages">
-    <div class="msg ai">Hey! I'm your executive assistant. Ask me to help plan your day, prioritize tasks, keep you motivated, or anything else on your mind.</div>
-  </div>
-  <div class="chat-input-row">
-    <textarea class="chat-input" id="chat-input" placeholder="Ask your assistant..." rows="1"></textarea>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
-  </div>
-</div>
+
+</div><!-- /app -->
 
 <script>
+// ── DATA ──
+let tasks = JSON.parse(localStorage.getItem('ea_tasks')||'null') || [
+  {id:1,text:'Review Q2 strategy doc',pri:'high',done:false},
+  {id:2,text:'Team standup',pri:'med',done:false},
+  {id:3,text:'Respond to investor email',pri:'high',done:false},
+  {id:4,text:'Block deep work time tomorrow',pri:'low',done:false},
+];
+let goals = JSON.parse(localStorage.getItem('ea_goals')||'null') || [
+  {id:1,name:'Ship product update',pct:65,color:'#64b5f6'},
+  {id:2,name:'Close 2 new accounts',pct:40,color:'#c8f064'},
+  {id:3,name:'Complete leadership course',pct:80,color:'#ffb347'},
+];
+let notes = JSON.parse(localStorage.getItem('ea_notes')||'[]');
+let chatHistory = [];
+let editingTaskId = null;
+let editingGoalId = null;
+let editingNoteId = null;
+let activeNoteTag = 'idea';
+let activeGoalColor = '#64b5f6';
+let qIdx = 0;
+
 const QUOTES = [
   '"The secret of getting ahead is getting started."',
   '"Focus on being productive instead of busy."',
@@ -556,301 +411,298 @@ const QUOTES = [
   '"Your future self is watching. Make them proud."',
   '"Hard work beats talent when talent doesn\'t work hard."',
   '"It always seems impossible until it\'s done."',
-  '"You don\'t have to be great to start, but you have to start to be great."',
   '"Discipline is choosing between what you want now and what you want most."',
 ];
-
 const MOODS = {
-  'Fired up': 'Great energy — channel it into your top priority first.',
-  'Focused': 'Perfect state. Protect your focus blocks today.',
-  'A bit foggy': 'Start with one small win to build momentum.',
-  'Overwhelmed': 'Let\'s cut the list down. Pick just 3 things that matter.',
-  'Coasting': 'Good day to tackle that task you\'ve been putting off.',
+  'Fired up':'Great energy — channel it into your top priority first.',
+  'Focused':'Perfect state. Protect your focus blocks today.',
+  'A bit foggy':'Start with one small win to build momentum.',
+  'Overwhelmed':'Let\'s cut the list. Pick just 3 things that truly matter.',
+  'Coasting':'Good day to tackle that task you\'ve been putting off.',
 };
 
-const GOALS = [
-  { name: 'Ship product update', pct: 65, color: '#64b5f6' },
-  { name: 'Close 2 new accounts', pct: 40, color: '#c8f064' },
-  { name: 'Complete leadership course', pct: 80, color: '#ffb347' },
-];
+// ── SAVE ──
+function saveTasks(){localStorage.setItem('ea_tasks',JSON.stringify(tasks))}
+function saveGoals(){localStorage.setItem('ea_goals',JSON.stringify(goals))}
+function saveNotes(){localStorage.setItem('ea_notes',JSON.stringify(notes))}
 
-let tasks = JSON.parse(localStorage.getItem('ea_tasks') || 'null') || [
-  { id: 1, text: 'Review Q2 strategy doc', priority: 'high', done: false },
-  { id: 2, text: 'Team standup', priority: 'med', done: false },
-  { id: 3, text: 'Respond to investor email', priority: 'high', done: false },
-  { id: 4, text: 'Block deep work time tomorrow', priority: 'low', done: false },
-];
+// ── NAV ──
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    if(s.id===id){s.className='screen active'}
+    else if(s.classList.contains('active')||s.classList.contains('behind')){s.className='screen behind'}
+    else{s.className='screen offright'}
+  });
+}
+function goHome(){showScreen('s-home');setNav('home')}
+function goNotes(){renderNotes();showScreen('s-notes');setNav('notes')}
+function goChat(){showScreen('s-chat');setNav('chat')}
+function setNav(tab){
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('nb-'+tab)?.classList.add('on');
+  document.getElementById('nb-'+tab+'2')?.classList.add('on');
+}
 
-let qIdx = 0;
-let chatHistory = [];
-
-function saveTasks() { localStorage.setItem('ea_tasks', JSON.stringify(tasks)); }
-
-function renderTasks() {
-  const list = document.getElementById('task-list');
-  list.innerHTML = tasks.map(t => `
-    <div class="task ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})">
-      <div class="task-check">${t.done ? '✓' : ''}</div>
-      <span class="task-text">${t.text}</span>
-      <span class="badge badge-${t.priority}">${t.priority}</span>
+// ── TASKS ──
+function renderTasks(){
+  const list=document.getElementById('task-list');
+  const order=['high','med','low'];
+  const sorted=[...tasks].sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return order.indexOf(a.pri)-order.indexOf(b.pri);
+  });
+  list.innerHTML=sorted.map(t=>`
+    <div class="task-wrap" id="tw-${t.id}">
+      <div class="task-bg"><span class="task-bg-del">Delete</span></div>
+      <div class="task ${t.done?'done':''}" id="t-${t.id}" data-id="${t.id}">
+        <div class="chk" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+        <div class="task-body" onclick="openTaskSheet(${t.id})">
+          <div class="task-text">${esc(t.text)}</div>
+        </div>
+        <span class="badge b${t.pri[0]}">${t.pri}</span>
+      </div>
     </div>`).join('');
+  initSwipe();
   updateStats();
 }
 
-function updateStats() {
-  const done = tasks.filter(t => t.done).length;
-  const total = tasks.length;
-  const pct = total ? Math.round(done / total * 100) : 0;
-  document.getElementById('stat-done').textContent = done;
-  document.getElementById('stat-pct').textContent = pct + '%';
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-label').textContent = `${done} of ${total} tasks done`;
-  document.getElementById('task-count').textContent = `${done} / ${total}`;
+function updateStats(){
+  const done=tasks.filter(t=>t.done).length, total=tasks.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-pct').textContent=pct+'%';
+  document.getElementById('pf').style.width=pct+'%';
+  document.getElementById('pl').textContent=`${done} of ${total} tasks done`;
+  document.getElementById('tc').textContent=`${done}/${total}`;
 }
 
-function toggleTask(id) {
-  tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+function toggleTask(id){
+  tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);
   saveTasks(); renderTasks();
 }
 
-function addTask() {
-  const inp = document.getElementById('task-input');
-  const pri = document.getElementById('task-pri').value;
-  if (!inp.value.trim()) return;
-  tasks.push({ id: Date.now(), text: inp.value.trim(), priority: pri, done: false });
-  inp.value = '';
-  saveTasks(); renderTasks();
+function addTask(){
+  const inp=document.getElementById('ti'), pri=document.getElementById('tp').value;
+  if(!inp.value.trim()) return;
+  tasks.push({id:Date.now(),text:inp.value.trim(),pri,done:false});
+  inp.value=''; saveTasks(); renderTasks();
 }
+document.getElementById('ti').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask()}});
 
-document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTask(); } });
-
-function renderGoals() {
-  document.getElementById('goals-list').innerHTML = GOALS.map(g => `
-    <div class="goal">
-      <div class="goal-top">
-        <span class="goal-name">${g.name}</span>
-        <span class="goal-pct">${g.pct}%</span>
-      </div>
-      <div class="goal-track"><div class="goal-bar" style="width:${g.pct}%;background:${g.color};"></div></div>
-    </div>`).join('');
-}
-
-function setMood(el, mood) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('checkin-q').textContent = MOODS[mood] || 'Got it. Let\'s get to work.';
-}
-
-function nextQuote() {
-  qIdx = (qIdx + 1) % QUOTES.length;
-  document.getElementById('motivate-q').textContent = QUOTES[qIdx];
-}
-
-function setDate() {
-  const d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('date-line').textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
-}
-
-function setTab(tab) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + tab).classList.add('active');
-}
-
-function openChat() {
-  document.getElementById('chat-panel').classList.add('open');
-  document.getElementById('nav-chat').classList.add('active');
-  document.getElementById('nav-home').classList.remove('active');
-}
-function closeChat() {
-  document.getElementById('chat-panel').classList.remove('open');
-  document.getElementById('nav-home').classList.add('active');
-  document.getElementById('nav-chat').classList.remove('active');
-}
-
-async function sendMessage() {
-  const inp = document.getElementById('chat-input');
-  const text = inp.value.trim();
-  if (!text) return;
-  inp.value = '';
-  inp.style.height = 'auto';
-
-  appendMsg(text, 'user');
-  chatHistory.push({ role: 'user', content: text });
-
-  const thinkEl = appendMsg('Thinking...', 'ai thinking');
-  document.getElementById('send-btn').disabled = true;
-
-  const taskSummary = tasks.map(t => `- [${t.done?'done':'pending'}] ${t.text} (${t.priority})`).join('\n');
-  const systemPrompt = `You are a sharp, concise executive assistant focused on productivity, motivation, and accountability. 
-The user's current tasks:\n${taskSummary}
-Keep responses brief and action-oriented — 2-4 sentences max unless asked for more. Be direct, warm, and motivating.`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: chatHistory,
-      })
+// swipe-to-delete
+function initSwipe(){
+  document.querySelectorAll('.task[data-id]').forEach(el=>{
+    let sx=0,dx=0,dragging=false;
+    el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;dx=0;dragging=true},{passive:true});
+    el.addEventListener('touchmove',e=>{
+      if(!dragging) return;
+      dx=e.touches[0].clientX-sx;
+      if(dx<0) el.style.transform=`translateX(${Math.max(dx,-90)}px)`;
+    },{passive:true});
+    el.addEventListener('touchend',()=>{
+      dragging=false;
+      if(dx<-70){
+        const id=parseInt(el.dataset.id);
+        el.style.transform='translateX(-100%)';
+        el.style.opacity='0';
+        setTimeout(()=>{tasks=tasks.filter(t=>t.id!==id);saveTasks();renderTasks()},250);
+      } else { el.style.transform=''; }
     });
-    const data = await res.json();
-    const reply = data.content?.find(b => b.type === 'text')?.text || 'Sorry, I had trouble with that.';
-    thinkEl.className = 'msg ai';
-    thinkEl.textContent = reply;
-    chatHistory.push({ role: 'assistant', content: reply });
-  } catch (e) {
-    thinkEl.className = 'msg ai';
-    thinkEl.textContent = 'Connection issue — please try again.';
+  });
+}
+
+// task sheet
+function openTaskSheet(id){
+  editingTaskId=id;
+  const t=tasks.find(t=>t.id===id);
+  document.getElementById('sh-text').value=t?t.text:'';
+  document.getElementById('sh-del').style.display=id?'inline-block':'none';
+  document.getElementById('sheet-title').textContent=id?'Edit task':'New task';
+  document.querySelectorAll('.pri-btn').forEach(b=>{
+    b.className='pri-btn'; if(t&&b.dataset.p===t.pri) b.className='pri-btn on-'+t.pri[0];
+  });
+  openSheet('task-sheet');
+  setTimeout(()=>document.getElementById('sh-text').focus(),320);
+}
+function setPri(el){
+  document.querySelectorAll('.pri-btn').forEach(b=>b.className='pri-btn');
+  el.className='pri-btn on-'+el.dataset.p[0];
+}
+function saveTask(){
+  const text=document.getElementById('sh-text').value.trim();
+  if(!text){closeSheet();return}
+  const pri=document.querySelector('.pri-btn[class*="on-"]')?.dataset.p||'med';
+  if(editingTaskId){
+    tasks=tasks.map(t=>t.id===editingTaskId?{...t,text,pri}:t);
+  } else {
+    tasks.push({id:Date.now(),text,pri,done:false});
   }
-  document.getElementById('send-btn').disabled = false;
-  scrollChat();
+  saveTasks(); closeSheet(); renderTasks();
+}
+function deleteTask(){
+  tasks=tasks.filter(t=>t.id!==editingTaskId);
+  saveTasks(); closeSheet(); renderTasks();
 }
 
-function appendMsg(text, cls) {
-  const msgs = document.getElementById('chat-messages');
-  const el = document.createElement('div');
-  el.className = 'msg ' + cls;
-  el.textContent = text;
-  msgs.appendChild(el);
-  scrollChat();
-  return el;
+// ── SHEET HELPERS ──
+function openSheet(id){
+  if(id==='goal-sheet') document.getElementById('goal-sheet').style.display='flex';
+  document.getElementById('sheet-bg').classList.add('vis');
+  document.getElementById(id).classList.add('open');
 }
-function scrollChat() {
-  const msgs = document.getElementById('chat-messages');
-  msgs.scrollTop = msgs.scrollHeight;
+function closeSheet(){
+  document.getElementById('sheet-bg').classList.remove('vis');
+  document.querySelectorAll('.sheet').forEach(s=>{s.classList.remove('open');s.style.display=''});
+  document.getElementById('goal-sheet').style.display='none';
 }
 
-const chatInput = document.getElementById('chat-input');
-chatInput.addEventListener('input', () => {
-  chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
-});
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
-
-// NOTES
-let notes = JSON.parse(localStorage.getItem('ea_notes') || '[]');
-let editingNoteId = null;
-let activeTag = 'idea';
-
-function saveNotes() { localStorage.setItem('ea_notes', JSON.stringify(notes)); }
-
-function renderNotes() {
-  const list = document.getElementById('notes-list');
-  const count = document.getElementById('notes-count');
-  count.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
-  if (notes.length === 0) {
-    list.innerHTML = '<div class="note-empty">No notes yet.<br>Tap + to capture your first idea.</div>';
-    return;
-  }
-  const sorted = [...notes].sort((a,b) => b.updatedAt - a.updatedAt);
-  list.innerHTML = sorted.map(n => `
-    <div class="note-card fade-up" onclick="openEditor(${n.id})">
-      <div class="note-card-top">
-        <div class="note-card-title">${escHtml(n.title || 'Untitled')}</div>
-        <span class="note-card-tag tag-${n.tag}">${n.tag}</span>
-      </div>
-      <div class="note-card-body">${escHtml(n.body || '')}</div>
-      <div class="note-card-date">${formatDate(n.updatedAt)}</div>
+// ── GOALS ──
+function renderGoals(){
+  const el=document.getElementById('goals-list');
+  if(!goals.length){el.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 2px">No goals yet — tap + add above</div>';return}
+  el.innerHTML=goals.map(g=>`
+    <div class="goal" onclick="openGoalSheet(${g.id})">
+      <div class="goal-top"><span class="goal-name">${esc(g.name)}</span><span class="goal-pct">${g.pct}%</span></div>
+      <div class="goal-track"><div class="goal-bar" style="width:${g.pct}%;background:${g.color}"></div></div>
     </div>`).join('');
 }
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function openGoalSheet(id){
+  editingGoalId=id;
+  const g=id?goals.find(g=>g.id===id):null;
+  document.getElementById('gs-title').textContent=g?'Edit goal':'Add goal';
+  document.getElementById('gs-name').value=g?g.name:'';
+  document.getElementById('gs-range').value=g?g.pct:0;
+  document.getElementById('gs-val').textContent=(g?g.pct:0)+'%';
+  activeGoalColor=g?g.color:'#64b5f6';
+  document.getElementById('gs-del').style.display=g?'inline-block':'none';
+  openSheet('goal-sheet');
+  setTimeout(()=>document.getElementById('gs-name').focus(),320);
 }
-
-function formatDate(ts) {
-  const d = new Date(ts);
-  const now = new Date();
-  const diffDays = Math.floor((now - d) / 86400000);
-  if (diffDays === 0) return 'Today, ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return diffDays + ' days ago';
-  return d.toLocaleDateString([], {month:'short', day:'numeric'});
-}
-
-function openNotes() {
-  document.getElementById('notes-panel').classList.add('open');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-notes').classList.add('active');
-  renderNotes();
-}
-
-function closeNotes() {
-  document.getElementById('notes-panel').classList.remove('open');
-  document.getElementById('nav-home').classList.add('active');
-  document.getElementById('nav-notes').classList.remove('active');
-}
-
-function openEditor(id) {
-  editingNoteId = id;
-  activeTag = 'idea';
-  if (id) {
-    const note = notes.find(n => n.id === id);
-    if (!note) return;
-    document.getElementById('editor-title').value = note.title || '';
-    document.getElementById('editor-content').value = note.body || '';
-    activeTag = note.tag || 'idea';
-    document.getElementById('editor-delete-btn').style.display = 'inline-block';
+function setGoalColor(el){activeGoalColor=el.dataset.c}
+function saveGoal(){
+  const name=document.getElementById('gs-name').value.trim();
+  if(!name){closeSheet();return}
+  const pct=parseInt(document.getElementById('gs-range').value);
+  if(editingGoalId){
+    goals=goals.map(g=>g.id===editingGoalId?{...g,name,pct,color:activeGoalColor}:g);
   } else {
-    document.getElementById('editor-title').value = '';
-    document.getElementById('editor-content').value = '';
-    document.getElementById('editor-delete-btn').style.display = 'none';
+    goals.push({id:Date.now(),name,pct,color:activeGoalColor});
   }
-  document.querySelectorAll('.editor-tag').forEach(t => {
-    t.classList.toggle('active', t.dataset.tag === activeTag);
+  saveGoals(); closeSheet(); renderGoals();
+}
+function deleteGoal(){
+  goals=goals.filter(g=>g.id!==editingGoalId);
+  saveGoals(); closeSheet(); renderGoals();
+}
+function closeGoalSheet(){closeSheet()}
+
+// ── NOTES ──
+function renderNotes(){
+  const el=document.getElementById('notes-list-el');
+  document.getElementById('notes-sub').textContent=notes.length+' note'+(notes.length!==1?'s':'');
+  if(!notes.length){el.innerHTML='<div class="empty">No notes yet.<br>Tap + to capture your first idea.</div>';return}
+  const sorted=[...notes].sort((a,b)=>b.updatedAt-a.updatedAt);
+  el.innerHTML=sorted.map(n=>`
+    <div class="note-card" onclick="openNoteEditor(${n.id})">
+      <div class="nc-top">
+        <div class="nc-title">${esc(n.title||'Untitled')}</div>
+        <span class="nc-tag t${n.tag[0]}">${n.tag}</span>
+      </div>
+      <div class="nc-body">${esc(n.body||'')}</div>
+      <div class="nc-date">${fmtDate(n.updatedAt)}</div>
+    </div>`).join('');
+}
+function openNoteEditor(id){
+  editingNoteId=id; activeNoteTag='idea';
+  const n=id?notes.find(n=>n.id===id):null;
+  document.getElementById('ne-title').value=n?n.title:'';
+  document.getElementById('ne-content').value=n?n.body:'';
+  if(n) activeNoteTag=n.tag||'idea';
+  document.getElementById('ne-del').style.display=n?'inline-block':'none';
+  document.querySelectorAll('.etag').forEach(t=>{
+    t.className='etag'; if(t.dataset.tag===activeNoteTag) t.classList.add('on-'+activeNoteTag);
   });
-  document.getElementById('note-editor').classList.add('open');
-  setTimeout(() => {
-    const t = id ? document.getElementById('editor-content') : document.getElementById('editor-title');
-    t.focus();
-  }, 320);
+  showScreen('s-editor');
+  setTimeout(()=>(n?document.getElementById('ne-content'):document.getElementById('ne-title')).focus(),320);
 }
-
-function closeEditor() {
-  document.getElementById('note-editor').classList.remove('open');
+function closeNoteEditor(){showScreen('s-notes');renderNotes()}
+function setNoteTag(el){
+  document.querySelectorAll('.etag').forEach(t=>t.className='etag');
+  activeNoteTag=el.dataset.tag; el.classList.add('on-'+activeNoteTag);
 }
-
-function setTag(el) {
-  document.querySelectorAll('.editor-tag').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  activeTag = el.dataset.tag;
-}
-
-function saveNote() {
-  const title = document.getElementById('editor-title').value.trim();
-  const body = document.getElementById('editor-content').value.trim();
-  if (!title && !body) { closeEditor(); return; }
-  if (editingNoteId) {
-    notes = notes.map(n => n.id === editingNoteId
-      ? { ...n, title, body, tag: activeTag, updatedAt: Date.now() }
-      : n);
+function saveNote(){
+  const title=document.getElementById('ne-title').value.trim();
+  const body=document.getElementById('ne-content').value.trim();
+  if(!title&&!body){closeNoteEditor();return}
+  if(editingNoteId){
+    notes=notes.map(n=>n.id===editingNoteId?{...n,title,body,tag:activeNoteTag,updatedAt:Date.now()}:n);
   } else {
-    notes.push({ id: Date.now(), title, body, tag: activeTag, createdAt: Date.now(), updatedAt: Date.now() });
+    notes.push({id:Date.now(),title,body,tag:activeNoteTag,createdAt:Date.now(),updatedAt:Date.now()});
   }
-  saveNotes();
-  closeEditor();
-  renderNotes();
+  saveNotes(); closeNoteEditor();
+}
+function deleteNote(){
+  notes=notes.filter(n=>n.id!==editingNoteId);
+  saveNotes(); closeNoteEditor();
 }
 
-function deleteNote() {
-  if (!editingNoteId) return;
-  notes = notes.filter(n => n.id !== editingNoteId);
-  saveNotes();
-  closeEditor();
-  renderNotes();
+// ── CHAT ──
+async function sendMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim(); if(!text) return;
+  inp.value=''; inp.style.height='auto';
+  appendMsg(text,'u'); chatHistory.push({role:'user',content:text});
+  const th=appendMsg('Thinking…','a th');
+  document.getElementById('chat-send').disabled=true;
+  const ts=tasks.map(t=>`- [${t.done?'done':'pending'}] ${t.text} (${t.pri})`).join('\n');
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:`You are a sharp, concise executive assistant focused on productivity, motivation and accountability.\nUser tasks:\n${ts}\nKeep responses brief — 2-4 sentences unless asked for more. Be direct, warm and motivating.`,
+      messages:chatHistory
+    })});
+    const d=await r.json();
+    const reply=d.content?.find(b=>b.type==='text')?.text||'Sorry, had trouble with that.';
+    th.className='msg a'; th.textContent=reply;
+    chatHistory.push({role:'assistant',content:reply});
+  }catch(e){th.className='msg a';th.textContent='Connection issue — please try again.'}
+  document.getElementById('chat-send').disabled=false;
+  scrollChat();
+}
+function appendMsg(text,cls){
+  const el=document.createElement('div');
+  el.className='msg '+cls; el.textContent=text;
+  document.getElementById('chat-msgs').appendChild(el);
+  scrollChat(); return el;
+}
+function scrollChat(){const m=document.getElementById('chat-msgs');m.scrollTop=m.scrollHeight}
+const ci=document.getElementById('chat-inp');
+ci.addEventListener('input',()=>{ci.style.height='auto';ci.style.height=Math.min(ci.scrollHeight,100)+'px'});
+ci.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
+
+// ── UTILS ──
+function mood(el,m){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('cq').textContent=MOODS[m]||'Got it. Let\'s get to work.';
+}
+function nextQ(){qIdx=(qIdx+1)%QUOTES.length;document.getElementById('mq').textContent=QUOTES[qIdx]}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtDate(ts){
+  const d=new Date(ts),now=new Date(),diff=Math.floor((now-d)/86400000);
+  if(diff===0) return 'Today, '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if(diff===1) return 'Yesterday';
+  if(diff<7) return diff+' days ago';
+  return d.toLocaleDateString([],{month:'short',day:'numeric'});
+}
+function setDate(){
+  const d=new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('date-line').textContent=`${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
 }
 
-
-setDate();
-renderTasks();
-renderGoals();
+setDate(); renderTasks(); renderGoals();
 </script>
 </body>
 </html>
